@@ -1,0 +1,4 @@
+Install-WindowsFeature -Name AD-Certificate, ADCS-Web-Enrollment -IncludeManagementTools
+Install-AdcsCertificationAuthority -CAType StandaloneRootCa -CACommonName "name_it_your_way" -force
+Install-AdcsWebEnrollment -Confirm -force
+New-SelfSignedCertificate -subject "localhost" 
