@@ -1,0 +1,66 @@
+http://loginscripts.com/limit-logins.asp
+
+net use U: \\fileserver\%username%$
+if errorlevel 1 goto logoff
+goto continue
+:logoff
+net send localhost "You are logged in elsewhere. Please log off a the other terminal before trying again."
+logoff
+:continue
+setx homedrive "U:"
+setx homepath "\"
+(rest of the script)
+
+In many environments you may want to limit the number of times people can login to the network. This can be for many reasons such as ensuring people don't share login information and to ensure that their profile and files don't get our of sync.
+You can use the login script along with an option in Windows to accomplish this task.
+
+Setup Limited User Access Directory
+
+To do this, your environment will need to be set up in the correct way. However you may find that you have already many of the components in place and just need to adjust the settings.
+
+On the file server, create a folder for each user that matches their username. For example, if their username is "jsmith" then create a folder called "jsmith".
+Share this folder out, either as "jsmith" If you would like to hide it from the browse list - which might be the case if there are lots of users on the machine as well as some generic shares, share it as "jsmith$".
+While you are sharing, adjust the "User Limit" from "Maximum Allowed" to the number that you desire. This would be "1" if you want to limit the user to just one connection.
+Press Apply/OK to close the dialogue.
+Adjust the Login Script
+
+Once you have restricted the user directory, you need to adjust your login script.
+
+First map the drive to their user directory.
+
+net use U: \\fileserver\%username%$
+
+Then you need to check if the mapping was successful. Add the following line immediately below the net use:
+
+iferrorlevel 1 goto logoff
+
+Then add a section called logoff. In the example below a message is also sent to the user to tell them why they have been kicked out. Then follow a command to logoff the user:
+
+:logoff
+net send localhost "You are logged in elsewhere. Please log off a the other terminal before trying again."
+logoff
+
+Finally if you are going to use the user directory as their home directory, then add the following commands immediately afterwards to set the environment variables correctly:
+
+setx homedrive "U:"
+setx homepath "\"
+
+The complete sample ready for copying and pasting in to your own script can be found at the bottom of the page.
+
+Uses for the User Directory
+
+The most common use for the user directory is to redirect the "My Documents" folder. This would allow it to be backed up centrally.
+You could also use it for the home to roaming profiles.
+With the addition of a registry file applied by the login script, you could also redirect the user's "Favorites", allowing them access where ever they might be.
+
+Questions
+
+Q: Logoff Doesn't Work
+A: This seems to only work on servers. For workstations you need the "logoff.exe" file from the "NT4.0 Resource Kit" which you can download from here: http://www.microsoft.com/downloads/details.aspx?FamilyID=3E972E9A-E08A-49A2-9D3A-C0519479E85A&displaylang=en 
+
+Q: I need other users to be able to see the contents of the home directories.
+A: There may be instances where this is required. In that case, share the folder twice.
+For example, share it once as "jsmith$" which is used in the login script as all the other shares are by this name and has the user connection limit applied. Then share it again as "jsmith" or even a different name such as "J Smith Documents" as this name isn't being used in a login script or has a user limit.
+
+Q: I am a network admin and need to see in to all the home directories but don't want to share each twice.
+A: In many cases network admins will create the user directories in a main folder called "users". This master folder is shared out (usually hidden: "users$") with restrictions on the share permissions (not the file permissions) to allow only admins access. 
